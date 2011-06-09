@@ -23475,7 +23475,7 @@ Para hacer esto necesitas cambiar los comandos %chown en comandos de consola alt
     </message>
     <message>
         <source>It is recommended to enable the PHP cURL extension, otherwise some features requiring a proxy or SSL will not work.</source>
-        <translation>Se recomienda activar la extensión PHP cURL, de lo contrario algunas funcionalidades que requieren un proxy o SSL no funcionarán.</translation>
+        <translation>Se recomienda activar la extensión PHP cURL, de lo contrario, algunas funcionalidades que requieren un proxy o SSL no funcionarán.</translation>
     </message>
     <message>
         <source>To enable the PHP cURL functions you need to compile PHP with support for it. Configure PHP with</source>
