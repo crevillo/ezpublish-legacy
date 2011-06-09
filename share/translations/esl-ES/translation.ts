@@ -23479,7 +23479,7 @@ Para hacer esto necesitas cambiar los comandos %chown en comandos de consola alt
     </message>
     <message>
         <source>To enable the PHP cURL functions you need to compile PHP with support for it. Configure PHP with</source>
-        <translation>Para activar las funciones PHP cUR debes compilar PHP con soporte para ello. Configura PHP con</translation>
+        <translation>Para activar las funciones PHP cURL debes compilar PHP con soporte para ello. Configura PHP con</translation>
     </message>
     <message>
         <source>More information on this subject is available at</source>
