@@ -23121,7 +23121,7 @@ Esta funcionalidad queda también disponible más adelante desde la Interfaz de 
     </message>
     <message>
         <source>AcceptPathInfo disabled or running in CGI mode</source>
-        <translation>AcceptPathInfo esta desactivado o corriendo en modo CGI</translation>
+        <translation>AcceptPathInfo está desactivado o corriendo en modo CGI</translation>
     </message>
     <message>
         <source>enter the following into your httpd.conf file.</source>
