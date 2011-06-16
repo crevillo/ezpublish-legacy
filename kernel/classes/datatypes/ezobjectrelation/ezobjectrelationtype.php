@@ -150,6 +150,22 @@ class eZObjectRelationType extends eZDataType
     }
 
     /*!
+     Fetches the http post variables for collected information
+    */
+    function fetchCollectionAttributeHTTPInput( $collection, $collectionAttribute, $http, $base, $contentObjectAttribute )
+    {   
+        if ( $http->hasPostVariable( $base . "_data_object_relation_id_" . $contentObjectAttribute->attribute( "id" ) ) )
+        {
+            $data = $http->postVariable( $base . "_data_object_relation_id_" . $contentObjectAttribute->attribute( "id" ) );
+            $data = trim( $data ) != '' ? $data : null;
+            $data = str_replace(" ", "", $data);
+            $collectionAttribute->setAttribute( "data_int", $data );
+            return true;
+        }
+        return false;
+    }
+
+    /*!
      Stores relation to the ezcontentobject_link table
     */
     function storeObjectAttribute( $contentObjectAttribute )
@@ -484,6 +500,11 @@ class eZObjectRelationType extends eZDataType
     }
 
     function isIndexable()
+    {
+        return true;
+    }
+
+    function isInformationCollector()
     {
         return true;
     }
