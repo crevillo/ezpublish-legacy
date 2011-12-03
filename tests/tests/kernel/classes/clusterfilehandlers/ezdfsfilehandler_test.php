@@ -121,7 +121,14 @@ class eZDFSFileHandlerTest extends eZDBBasedClusterFileHandlerAbstractTest
      */
     protected function localFileExists( $filePath )
     {
-        clearstatcache();
+        if ( version_compare( PHP_VERSION, '5.3.0' ) >= 0 )
+        {
+            clearstatcache( false, $filePath );
+        }
+        else
+        {
+            clearstatcache();
+        }
         return file_exists( $filePath );
     }
 
