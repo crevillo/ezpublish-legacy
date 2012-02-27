@@ -781,11 +781,30 @@ class eZDataType
         return false;
     }
 
-    /*!
-     Validates the input for an object attribute and returns a validation
-     state as defined in eZInputValidator.
-     \note Default implementation does nothing and returns accepted.
-    */
+    /**
+     * Validates the input for an object attribute and retursn a validation
+     * state as defined in eZInputValidator.
+     * Each datatype should implement this function and call it from
+     * validateObjectAttributeHTTPInput, fromString method and probably
+     * others methods that need validation previously to store the content
+     * 
+     * @param eZContentObjectAttribute $objectAttribute
+     * @param mixed $input
+     * @return int
+     * @since 4.7
+     * 
+     */
+    function validateObjectAttributeInput( $objectAttribute, $input )
+    {
+        return eZInputValidator::STATE_ACCEPTED;
+    }
+
+    
+    /**
+     * Validates the http input for an object attribute and returns a validation
+     * state as defined in eZInputValidator.
+     * Note Default implementation does nothing and returns accepted.
+     */
     function validateObjectAttributeHTTPInput( $http, $base, $objectAttribute )
     {
         return eZInputValidator::STATE_ACCEPTED;
@@ -1093,6 +1112,14 @@ class eZDataType
     {
         return '';
     }
+
+    /**
+     * Each datatype should implement this function so the datatype
+     * can be used with createAndPublishObject and updateAndPublish Object Methods
+     * Since 4.7 it should call new validateObjectAttributeInput previously to store
+     * the content.
+     * Default implementation do nothing
+     */
     function fromString( $objectAttribute, $string )
     {
     }
