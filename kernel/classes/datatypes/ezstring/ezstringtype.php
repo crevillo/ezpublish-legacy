@@ -69,7 +69,7 @@ class eZStringType extends eZDataType
     /*
      Private method, only for using inside this class.
     */
-    function validateStringHTTPInput( $data, $contentObjectAttribute, $classAttribute )
+    function validateStringInput( $data, $contentObjectAttribute, $classAttribute )
     {
         $maxLen = $classAttribute->attribute( self::MAX_LEN_FIELD );
         $textCodec = eZTextCodec::instance( false );
@@ -84,28 +84,20 @@ class eZStringType extends eZDataType
         return eZInputValidator::STATE_ACCEPTED;
     }
 
-
-    function validateObjectAttributeHTTPInput( $http, $base, $contentObjectAttribute )
+    function validateObjectAttributeInput( $contentObjectAttribute, $data )
     {
-        $classAttribute = $contentObjectAttribute->contentClassAttribute();
-
-        if ( $http->hasPostVariable( $base . '_ezstring_data_text_' . $contentObjectAttribute->attribute( 'id' ) ) )
+        if ( $data == "" )
         {
-            $data = trim( $http->postVariable( $base . '_ezstring_data_text_' . $contentObjectAttribute->attribute( 'id' ) ) );
-
-            if ( $data == "" )
+            if ( !$classAttribute->attribute( 'is_information_collector' ) &&
+                 $contentObjectAttribute->validateIsRequired() )
             {
-                if ( !$classAttribute->attribute( 'is_information_collector' ) and
-                     $contentObjectAttribute->validateIsRequired() )
-                {
-                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
                                                                          'Input required.' ) );
-                    return eZInputValidator::STATE_INVALID;
-                }
+                return eZInputValidator::STATE_INVALID;
             }
             else
             {
-                return $this->validateStringHTTPInput( $data, $contentObjectAttribute, $classAttribute );
+                return $this->validateStringInput( $data, $contentObjectAttribute, $classAttribute );
             }
         }
         else if ( !$classAttribute->attribute( 'is_information_collector' ) and $contentObjectAttribute->validateIsRequired() )
@@ -114,6 +106,12 @@ class eZStringType extends eZDataType
             return eZInputValidator::STATE_INVALID;
         }
         return eZInputValidator::STATE_ACCEPTED;
+    }
+
+    function validateObjectAttributeHTTPInput( $http, $base, $contentObjectAttribute )
+    {
+       $data = trim( $http->postVariable( $base . '_ezstring_data_text_' . $contentObjectAttribute->attribute( 'id' ) ) );           
+       return $this->validateObjectAttributeInput( $contentObjectAttribute, $data );
     }
 
     function validateCollectionAttributeHTTPInput( $http, $base, $contentObjectAttribute )
@@ -136,7 +134,7 @@ class eZStringType extends eZDataType
             }
             else
             {
-                return $this->validateStringHTTPInput( $data, $contentObjectAttribute, $classAttribute );
+                return $this->validateStringInput( $data, $contentObjectAttribute, $classAttribute );
             }
         }
         else
@@ -287,7 +285,12 @@ class eZStringType extends eZDataType
 
     function fromString( $contentObjectAttribute, $string )
     {
-        return $contentObjectAttribute->setAttribute( 'data_text', $string );
+        $validation = $this->validateObjectAttributeInput( $contentObjectAttribute, $string );
+
+        if( $validation === eZInputValidator::STATE_ACCEPTED; )
+            $contentObjectAttribute->setAttribute( 'data_text', $string );
+        
+        return $validation;
     }
 
 
