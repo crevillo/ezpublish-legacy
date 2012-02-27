@@ -149,9 +149,17 @@ class eZContentFunctions
                                 }
                                 default:
                             }
-
-                            $attribute->fromString( $dataString );
-                            $attribute->store();
+                                
+                            if ( $attribute->fromString( $dataString ) === eZInputValidator::STATE_ACCEPTED )
+                            {
+                                $attribute->store();
+                            }
+                            else
+                            {
+                                $db->rollback();                                
+                                eZDebug::writeError( "Error trying to add '$attributeIdentifier' to the '$classIdentifier' object. Error was {$attribute->ValidationError}", __METHOD__ );
+                                return false;
+                            }
                         }
                     }
                 }
