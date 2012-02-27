@@ -789,12 +789,12 @@ class eZDataType
      * others methods that need validation previously to store the content
      * 
      * @param eZContentObjectAttribute $objectAttribute
-     * @param mixed $input
+     * @param mixed $data
      * @return int
      * @since 4.7
      * 
      */
-    function validateObjectAttributeInput( $objectAttribute, $input )
+    function validateObjectAttributeInput( $objectAttribute, $data )
     {
         return eZInputValidator::STATE_ACCEPTED;
     }
