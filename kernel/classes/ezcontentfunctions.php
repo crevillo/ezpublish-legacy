@@ -163,6 +163,12 @@ class eZContentFunctions
                                 return false;
                             }
                         }
+                        elseif ( $attribute->isRequired() )
+                        {
+                            $db->rollback();
+                            eZDebug::writeError( "Attribute '{$attributeIdentifier'} for the '{$classIdentifier}' is required but entry is missing'", __METHOD__ );
+                            return false;
+                        }
                     }
                 }
 
