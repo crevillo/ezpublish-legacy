@@ -156,7 +156,9 @@ class eZContentFunctions
                             }
                             else
                             {
-                                $db->rollback();                                
+                                $db->rollback(); 
+                                // @todo ValidationError should be a private variable for the class and 
+                                // a method should output its data                              
                                 eZDebug::writeError( "Error trying to add '$attributeIdentifier' to the '$classIdentifier' object. Error was {$attribute->ValidationError}", __METHOD__ );
                                 return false;
                             }
