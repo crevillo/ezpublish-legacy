@@ -159,14 +159,14 @@ class eZContentFunctions
                                 $db->rollback(); 
                                 // @todo ValidationError should be a private variable for the class and 
                                 // a method should output its data                              
-                                eZDebug::writeError( "Error trying to add value '{$dataString}' for '{$attributeIdentifier}' to the '{$classIdentifier}' object. Error was '{$attribute->ValidationError}'", __METHOD__ );
+                                eZDebug::writeError( "Error trying to add value '{$dataString}' for '{$attributeIdentifier}' to the '{$classIdentifier}' object. Error was '{$attribute->ValidationError}'.", __METHOD__ );
                                 return false;
                             }
                         }
-                        elseif ( $attribute->isRequired() )
+                        elseif ( $attribute->validateIsRequired() )
                         {
                             $db->rollback();
-                            eZDebug::writeError( "Attribute '{$attributeIdentifier'} for the '{$classIdentifier}' is required but entry is missing'", __METHOD__ );
+                            eZDebug::writeError( "Attribute '{$attributeIdentifier}' for the '{$classIdentifier}' is required but entry is missing.", __METHOD__ );
                             return false;
                         }
                     }
@@ -321,8 +321,18 @@ class eZContentFunctions
                     default:
                 }
 
-                $attribute->fromString( $dataString );
-                $attribute->store();
+                if ( $attribute->fromString( $dataString ) === eZInputValidator::STATE_ACCEPTED )
+                {
+                    $attribute->store();
+                }
+                else
+                {
+                    $db->rollback(); 
+                    // @todo ValidationError should be a private variable for the class and 
+                    // a method should output its data                              
+                    eZDebug::writeError( "Error trying to update value '{$dataString}' for '{$attributeIdentifier}' to the object '{$contentObject->attribute( 'name' )}'. Error was '{$attribute->ValidationError}'", __METHOD__ );
+                    return false;
+                }                
             }
         }
 
