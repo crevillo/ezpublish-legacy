@@ -29,13 +29,8 @@ class eZAuthorType extends eZDataType
      * Validates input for the object
      *
      * @param eZContentObjectAttribute $contentObjectAttribute
-<<<<<<< HEAD
      * @param array $data should be an associative array with 2 keys, 
      *                    name_list and email_list
-=======
-     * @param array $data should be an associative array with 3 keys, 
-     *                    id_list, name_list, email_list
->>>>>>> e23610781f46b6db33d23c52a8e83924c76525e8
      */
     function validateObjectAttributeInput( $contentObjectAttribute, $data )
     {
