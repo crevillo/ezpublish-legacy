@@ -199,6 +199,8 @@ abstract class ezpClusterGateway
 
             if ( isset( $serverVariables['HTTP_IF_MODIFIED_SINCE'] ) )
             {
+                $value = $serverVariables['HTTP_IF_MODIFIED_SINCE'];
+
                 // strip the garbage prepended by a semi-colon used by some browsers
                 if ( ( $pos = strpos( $value , ';' ) ) !== false )
                     $value = substr( $value, 0, $pos );
@@ -209,6 +211,7 @@ abstract class ezpClusterGateway
 
         // Request headers:  HTTP Range
         $contentLength = $filesize;
+        $startOffset = false;
         if ( CLUSTER_ENABLE_HTTP_RANGE )
         {
             // let the client know we do accept range by bytes
