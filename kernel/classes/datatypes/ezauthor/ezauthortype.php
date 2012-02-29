@@ -24,6 +24,50 @@ class eZAuthorType extends eZDataType
         $this->eZDataType( self::DATA_TYPE_STRING, ezpI18n::tr( 'kernel/classes/datatypes', "Authors", 'Datatype name' ),
                            array( 'serialize_supported' => true ) );
     }
+    
+    /**
+     * Validates input for the object
+     *
+     * @param eZContentObjectAttribute $contentObjectAttribute
+     * @param array $data should be an associative array with 3 keys, 
+     *                    id_list, name_list, email_list
+     */
+    function validateObjectAttributeInput( $contentObjectAttribute, $data )
+    {
+        $nameList = $data['name_list'];
+        $emailList = $data['email_list'];
+
+        if ( $contentObjectAttribute->validateIsRequired() )
+        {
+            if ( trim( $nameList[0] ) == "" )
+            {
+                $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes', 'At least one author is required.' ) );
+                return eZInputValidator::STATE_INVALID;
+            }
+            
+            if ( trim( $nameList[0] ) != "" )
+            {
+                for ( $i=0;$i<count( $nameList );$i++ )
+                {
+                    $name =  $nameList[$i];
+                    $email =  $emailList[$i];
+                    if ( trim( $name )== "" )
+                    {
+                        $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes', 'The author name must be provided.' ) );
+                        return eZInputValidator::STATE_INVALID;
+                    }
+                    $isValidate =  eZMail::validate( $email );
+                    if ( !$isValidate )
+                    {
+                        $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes', 'The email address is not valid.' ) );
+                        return eZInputValidator::STATE_INVALID;
+                    }
+                }
+            }
+        }
+
+        return eZInputValidator::STATE_ACCEPTED;
+    }
 
     /*!
      Validates the input and returns true if the input was
@@ -31,74 +75,17 @@ class eZAuthorType extends eZDataType
     */
     function validateObjectAttributeHTTPInput( $http, $base, $contentObjectAttribute )
     {
-        $actionRemoveSelected = false;
-        if ( $http->hasPostVariable( 'CustomActionButton' ) )
-        {
-            $customActionArray = $http->postVariable( 'CustomActionButton' );
+        $classAttribute = $contentObjectAttribute->contentClassAttribute();
 
-            if ( isset( $customActionArray[$contentObjectAttribute->attribute( "id" ) . '_remove_selected'] ) )
-                if ( $customActionArray[$contentObjectAttribute->attribute( "id" ) . '_remove_selected'] == 'Remove selected' )
-                    $actionRemoveSelected = true;
-        }
+        $nameList = $http->postVariable( $base . "_data_author_name_" . $contentObjectAttribute->attribute( "id" ) );
+        $emailList = $http->postVariable( $base . "_data_author_email_" . $contentObjectAttribute->attribute( "id" ) );
 
-        if ( $http->hasPostVariable( $base . "_data_author_id_" . $contentObjectAttribute->attribute( "id" ) ) )
-        {
-            $classAttribute = $contentObjectAttribute->contentClassAttribute();
-            $idList = $http->postVariable( $base . "_data_author_id_" . $contentObjectAttribute->attribute( "id" ) );
-            $nameList = $http->postVariable( $base . "_data_author_name_" . $contentObjectAttribute->attribute( "id" ) );
-            $emailList = $http->postVariable( $base . "_data_author_email_" . $contentObjectAttribute->attribute( "id" ) );
-
-            if ( $http->hasPostVariable( $base . "_data_author_remove_" . $contentObjectAttribute->attribute( "id" ) ) )
-                $removeList = $http->postVariable( $base . "_data_author_remove_" . $contentObjectAttribute->attribute( "id" ) );
-            else
-                $removeList = array();
-
-            if ( $contentObjectAttribute->validateIsRequired() )
-            {
-                if ( trim( $nameList[0] ) == "" )
-                {
-                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                         'At least one author is required.' ) );
-                    return eZInputValidator::STATE_INVALID;
-                }
-            }
-            if ( trim( $nameList[0] ) != "" )
-            {
-                for ( $i=0;$i<count( $idList );$i++ )
-                {
-                    if ( $actionRemoveSelected )
-                        if ( in_array( $idList[$i], $removeList ) )
-                            continue;
-
-                    $name =  $nameList[$i];
-                    $email =  $emailList[$i];
-                    if ( trim( $name )== "" )
-                    {
-                        $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                             'The author name must be provided.' ) );
-                        return eZInputValidator::STATE_INVALID;
-
-                    }
-                    $isValidate =  eZMail::validate( $email );
-                    if ( ! $isValidate )
-                    {
-                        $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                             'The email address is not valid.' ) );
-                        return eZInputValidator::STATE_INVALID;
-                    }
-                }
-            }
-        }
-        else
-        {
-            if ( $contentObjectAttribute->validateIsRequired() )
-            {
-                $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                     'At least one author is required.' ) );
-                return eZInputValidator::STATE_INVALID;
-            }
-        }
-        return eZInputValidator::STATE_ACCEPTED;
+        $data = array( 
+            'name_list' => $nameList,
+            'email_list' => $emailList
+        );
+            
+        return $this->validateObjectAttributeInput( $contentObjectAttribute, $data );       
     }
 
     /*!
@@ -175,22 +162,37 @@ class eZAuthorType extends eZDataType
         }
         return eZStringUtils::implodeStr( $authorList, "&" );
     }
-
+    
+    /**
+     * @todo Can we avoid double loop here?
+     */ 
     function fromString( $contentObjectAttribute, $string )
     {
         $authorList = eZStringUtils::explodeStr( $string, '&' );
-
-        $author = new eZAuthor( );
-
-
+        $data = array(
+            'name_list' => array(),
+            'email_list' => array(),
+        );
+        // first loop for building validate data array
         foreach ( $authorList as $authorStr )
         {
             $authorData = eZStringUtils::explodeStr( $authorStr, '|' );
-            $author->addAuthor( $authorData[2], $authorData[0], $authorData[1] );
-
+            $data['name_list'][] = $authorData[0];
+            $data['email_list'][] = $authorData[1];
+        }       
+        
+        $validation = $this->validateObjectAttributeInput( $contentObjectAttribute, $data );
+        if( $validation === eZInputValidator::STATE_ACCEPTED )
+        {
+            $author = new eZAuthor();
+            foreach ( $authorList as $authorStr )
+            {
+                $authorData = eZStringUtils::explodeStr( $authorStr, '|' );
+                $author->addAuthor( $authorData[2], $authorData[0], $authorData[1] );
+            }
+            $contentObjectAttribute->setContent( $author );
         }
-        $contentObjectAttribute->setContent( $author );
-        return $author;
+        return $validation;
     }
 
     /*!
