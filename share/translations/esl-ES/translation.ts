@@ -9497,7 +9497,7 @@ Nota: los paquetes no serán desinstalados.</translation>
     </message>
     <message>
         <source>Name contains illegal character(s).</source>
-        <translation>El nombre contiene caracteros ilegales.</translation>
+        <translation>El nombre contiene caracteres ilegales.</translation>
     </message>
     <message>
         <source>Name should only contain A-Z and 0-9.</source>
@@ -26743,7 +26743,7 @@ tu cuenta.</translation>
     </message>
     <message>
         <source>The input text is too long. The maximum number of characters allowed is %1.</source>
-        <translation>El texto entrado es demasiado largo. El número máximo de caracteros permitidos es %1.</translation>
+        <translation>El texto entrado es demasiado largo. El número máximo de caracteres permitidos es %1.</translation>
     </message>
     <message>
         <source>Time input required.</source>
@@ -27845,7 +27845,7 @@ si has elegido la opción &quot;%3&quot; desde &quot;%4&quot; </translation>
     </message>
     <message>
         <source>The package name %packagename is not valid, it can only contain characters in the range a-z, 0-9 and underscore.</source>
-        <translation>El nombre de paquete %packagename no es valido. Solo puede contener caracteros a-z, 0-9 y subrayado.</translation>
+        <translation>El nombre de paquete %packagename no es valido. Solo puede contener caracteres a-z, 0-9 y subrayado.</translation>
     </message>
     <message>
         <source>Select an extension to be exported</source>
