@@ -44,6 +44,128 @@ class eZUserType extends eZDataType
             $db->query( "DELETE FROM ezuser_role WHERE contentobject_id = '$userID'" );
         }
     }
+    
+    /**
+     * Validates entry fro ezuser datatype
+     *
+     * @param eZContentObjectAttribute $contentObjectAttribute
+     * @param array $data should be an array providing login, email, password and password_confirm
+     * @return int
+     */
+    function validateObjectAttributeInput( $contentObjectAttribute, $data )
+    {
+        $classAttribute = $contentObjectAttribute->contentClassAttribute();
+        
+        $loginName = $data['login'];
+        $email = $data['email'];
+        $password = $data['password'];
+        $passwordConfirm = $data['password_confirm'];
+        if ( trim( $loginName ) == '' )
+        {
+            if ( $contentObjectAttribute->validateIsRequired() || trim( $email ) != '' )
+            {
+                $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                                                                         'The username must be specified.' ) );
+                return eZInputValidator::STATE_INVALID;
+            }
+        }
+        else
+        {
+            $existUser = eZUser::fetchByName( $loginName );
+            if ( $existUser != null )
+            {
+                $userID = $existUser->attribute( 'contentobject_id' );
+                if ( $userID !=  $contentObjectAttribute->attribute( "contentobject_id" ) )
+                {
+                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                                                                             'The username already exists, please choose another one.' ) );
+                   return eZInputValidator::STATE_INVALID;
+                }
+            }
+            // validate user email
+            $isValidate = eZMail::validate( $email );
+            if ( !$isValidate )
+            {
+                $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                                                                         'The email address is not valid.' ) );
+                return eZInputValidator::STATE_INVALID;
+            }
+
+            $authenticationMatch = eZUser::authenticationMatch();
+            if ( $authenticationMatch & eZUser::AUTHENTICATE_EMAIL )
+            {
+                if ( eZUser::requireUniqueEmail() )
+                {
+                    $userByEmail = eZUser::fetchByEmail( $email );
+                    if ( $userByEmail != null )
+                    {
+                        $userID = $userByEmail->attribute( 'contentobject_id' );
+                        if ( $userID !=  $contentObjectAttribute->attribute( "contentobject_id" ) )
+                        {
+                            $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                                                                                     'A user with this email already exists.' ) );
+                            return eZInputValidator::STATE_INVALID;
+                        }
+                    }
+                }
+            }
+            // validate user name
+            if ( !eZUser::validateLoginName( $loginName, $errorText ) )
+            {
+                $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                                                                         $errorText ) );
+                return eZInputValidator::STATE_INVALID;
+            }
+            // validate user password
+            $ini = eZINI::instance();
+            $generatePasswordIfEmpty = $ini->variable( "UserSettings", "GeneratePasswordIfEmpty" ) == 'true';
+            if ( !$generatePasswordIfEmpty || ( $password != "" ) )
+            {
+                if ( $password == "" )
+                {
+                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                                                                             'The password cannot be empty.',
+                                                                             'eZUserType' ) );
+                    return eZInputValidator::STATE_INVALID;
+                }
+                if ( $password != $passwordConfirm )
+                {
+                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                                                                             'The passwords do not match.',
+                                                                             'eZUserType' ) );
+                    return eZInputValidator::STATE_INVALID;
+                }
+                if ( !eZUser::validatePassword( $password ) )
+                {
+                    $minPasswordLength = $ini->variable( 'UserSettings', 'MinPasswordLength' );
+                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                                                                             'The password must be at least %1 characters long.', null, array( $minPasswordLength ) ) );
+                    return eZInputValidator::STATE_INVALID;
+                }
+                if ( strtolower( $password ) == 'password' )
+                {
+                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                                                                             'The password must not be "password".' ) );
+                    return eZInputValidator::STATE_INVALID;
+                }
+            }
+
+            // validate confirm email
+            if ( $ini->variable( 'UserSettings', 'RequireConfirmEmail' ) == 'true' )
+            {
+                $emailConfirm = $http->postVariable( $base . "_data_user_email_confirm_" . $contentObjectAttribute->attribute( "id" ) );
+                if ( $email != $emailConfirm )
+                {
+                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                                                                             'The emails do not match.',
+                                                                             'eZUserType' ) );
+                    return eZInputValidator::STATE_INVALID;
+                }
+            }
+
+            return eZInputValidator::STATE_ACCEPTED;
+        }        
+    }
 
     /*!
      Validates the input and returns true if the input was
@@ -56,114 +178,13 @@ class eZUserType extends eZDataType
              $http->hasPostVariable( $base . "_data_user_password_" . $contentObjectAttribute->attribute( "id" ) ) &&
              $http->hasPostVariable( $base . "_data_user_password_confirm_" . $contentObjectAttribute->attribute( "id" ) ) )
         {
-            $classAttribute = $contentObjectAttribute->contentClassAttribute();
-            $loginName = $http->postVariable( $base . "_data_user_login_" . $contentObjectAttribute->attribute( "id" ) );
-            $email = $http->postVariable( $base . "_data_user_email_" . $contentObjectAttribute->attribute( "id" ) );
-            $password = $http->postVariable( $base . "_data_user_password_" . $contentObjectAttribute->attribute( "id" ) );
-            $passwordConfirm = $http->postVariable( $base . "_data_user_password_confirm_" . $contentObjectAttribute->attribute( "id" ) );
-            if ( trim( $loginName ) == '' )
-            {
-                if ( $contentObjectAttribute->validateIsRequired() || trim( $email ) != '' )
-                {
-                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                         'The username must be specified.' ) );
-                    return eZInputValidator::STATE_INVALID;
-                }
-            }
-            else
-            {
-                $existUser = eZUser::fetchByName( $loginName );
-                if ( $existUser != null )
-                {
-                    $userID = $existUser->attribute( 'contentobject_id' );
-                    if ( $userID !=  $contentObjectAttribute->attribute( "contentobject_id" ) )
-                    {
-                        $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                             'The username already exists, please choose another one.' ) );
-                        return eZInputValidator::STATE_INVALID;
-                    }
-                }
-                // validate user email
-                $isValidate = eZMail::validate( $email );
-                if ( !$isValidate )
-                {
-                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                         'The email address is not valid.' ) );
-                    return eZInputValidator::STATE_INVALID;
-                }
-
-                $authenticationMatch = eZUser::authenticationMatch();
-                if ( $authenticationMatch & eZUser::AUTHENTICATE_EMAIL )
-                {
-                    if ( eZUser::requireUniqueEmail() )
-                    {
-                        $userByEmail = eZUser::fetchByEmail( $email );
-                        if ( $userByEmail != null )
-                        {
-                            $userID = $userByEmail->attribute( 'contentobject_id' );
-                            if ( $userID !=  $contentObjectAttribute->attribute( "contentobject_id" ) )
-                            {
-                                $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                                     'A user with this email already exists.' ) );
-                                return eZInputValidator::STATE_INVALID;
-                            }
-                        }
-                    }
-                }
-                // validate user name
-                if ( !eZUser::validateLoginName( $loginName, $errorText ) )
-                {
-                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                         $errorText ) );
-                    return eZInputValidator::STATE_INVALID;
-                }
-                // validate user password
-                $ini = eZINI::instance();
-                $generatePasswordIfEmpty = $ini->variable( "UserSettings", "GeneratePasswordIfEmpty" ) == 'true';
-                if ( !$generatePasswordIfEmpty || ( $password != "" ) )
-                {
-                    if ( $password == "" )
-                    {
-                        $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                             'The password cannot be empty.',
-                                                                             'eZUserType' ) );
-                        return eZInputValidator::STATE_INVALID;
-                    }
-                    if ( $password != $passwordConfirm )
-                    {
-                        $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                             'The passwords do not match.',
-                                                                             'eZUserType' ) );
-                        return eZInputValidator::STATE_INVALID;
-                    }
-                    if ( !eZUser::validatePassword( $password ) )
-                    {
-                        $minPasswordLength = $ini->variable( 'UserSettings', 'MinPasswordLength' );
-                        $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                             'The password must be at least %1 characters long.', null, array( $minPasswordLength ) ) );
-                        return eZInputValidator::STATE_INVALID;
-                    }
-                    if ( strtolower( $password ) == 'password' )
-                    {
-                        $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                             'The password must not be "password".' ) );
-                        return eZInputValidator::STATE_INVALID;
-                    }
-                }
-
-                // validate confirm email
-                if ( $ini->variable( 'UserSettings', 'RequireConfirmEmail' ) == 'true' )
-                {
-                    $emailConfirm = $http->postVariable( $base . "_data_user_email_confirm_" . $contentObjectAttribute->attribute( "id" ) );
-                    if ( $email != $emailConfirm )
-                    {
-                        $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                             'The emails do not match.',
-                                                                             'eZUserType' ) );
-                        return eZInputValidator::STATE_INVALID;
-                    }
-                }
-            }
+            $data = array( 
+                'login' => $http->postVariable( $base . "_data_user_login_" . $contentObjectAttribute->attribute( "id" ) ),
+                'email' => $http->postVariable( $base . "_data_user_email_" . $contentObjectAttribute->attribute( "id" ) ),
+                'password' => $http->postVariable( $base . "_data_user_password_" . $contentObjectAttribute->attribute( "id" ) ),
+                'password_confirm' => $http->postVariable( $base . "_data_user_password_confirm_" . $contentObjectAttribute->attribute( "id" ) )
+            );
+            return $this->validateObjectAttributeInput( $contentObjectAttribute, $data );
         }
         else if ( $contentObjectAttribute->validateIsRequired() )
         {
@@ -431,52 +452,49 @@ class eZUserType extends eZDataType
      * foo|foo@ez.no|1234|md5_password|0
      * </code>
      *
+     * @since 4.7 returns int (result of the validation process) instead of the user object
+     *
      * @param object $contentObjectAttribute A contentobject attribute of type user_account.
      * @param string $string The string as described in the example.
-     * @return object The newly created eZUser object
+     * @return int result of the validation proccess
      */
     function fromString( $contentObjectAttribute, $string )
     {
         if ( $string == '' )
-            return true;
+            return eZInputValidator::STATE_INVALID;
         $userData = explode( '|', $string );
-        if( count( $userData ) < 2 )
-            return false;
-        $login = $userData[0];
-        $email = $userData[1];
-
-        $userByUsername = eZUser::fetchByName( $login );
-        if( $userByUsername && $userByUsername->attribute( 'contentobject_id' ) != $contentObjectAttribute->attribute( 'contentobject_id' ) )
-            return false;
-
-        if( eZUser::requireUniqueEmail() )
+        if ( count( $userData ) < 2 )
+            return eZInputValidator::STATE_INVALID;
+        $data = array(
+            'login' => $userData[0],
+            'email' => $userData[1],
+            'password' => $userData[2],
+            'password_confirm' => $userData[2]
+        );
+        
+        $validation = $this->validateObjectAttributeInput( $contentObjectAttribute, $data );
+        if( $validation === eZInputValidator::STATE_ACCEPTED )
         {
-            $userByEmail = eZUser::fetchByEmail( $email );
-            if( $userByEmail && $userByEmail->attribute( 'contentobject_id' ) != $contentObjectAttribute->attribute( 'contentobject_id' ) )
-                return false;
+            $user = eZUser::create( $contentObjectAttribute->attribute( 'contentobject_id' ) );
+            $user->setAttribute( 'login', $userData[0] );
+            $user->setAttribute( 'email', $userData[1] );
+            if ( isset( $userData[2] ) )
+                $user->setAttribute( 'password_hash', $userData[2] );
+
+            if ( isset( $userData[3] ) )
+                $user->setAttribute( 'password_hash_type', eZUser::passwordHashTypeID( $userData[3] ) );
+
+            if( isset( $userData[4] ) )
+            {
+                $userSetting = eZUserSetting::fetch(
+                    $contentObjectAttribute->attribute( 'contentobject_id' )
+                );
+                $userSetting->setAttribute( "is_enabled", (int)(bool)$userData[4] );
+                $userSetting->store();
+            }
+            $user->store();
         }
-
-        $user = eZUser::create( $contentObjectAttribute->attribute( 'contentobject_id' ) );
-
-        $user->setAttribute( 'login', $login );
-        $user->setAttribute( 'email', $email );
-        if ( isset( $userData[2] ) )
-            $user->setAttribute( 'password_hash', $userData[2] );
-
-        if ( isset( $userData[3] ) )
-            $user->setAttribute( 'password_hash_type', eZUser::passwordHashTypeID( $userData[3] ) );
-
-        if( isset( $userData[4] ) )
-        {
-            $userSetting = eZUserSetting::fetch(
-                $contentObjectAttribute->attribute( 'contentobject_id' )
-            );
-            $userSetting->setAttribute( "is_enabled", (int)(bool)$userData[4] );
-            $userSetting->store();
-        }
-
-        $user->store();
-        return $user;
+        return $validation;
     }
 
     /*!
