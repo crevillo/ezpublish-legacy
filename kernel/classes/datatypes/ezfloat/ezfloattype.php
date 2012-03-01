@@ -83,6 +83,15 @@ class eZFloatType extends eZDataType
         return false;
     }
 
+    /*
+     * @since 4.7
+     * Validates object input. It should be used by all kind of inputs 
+     * ( http input, from string ... )
+     *
+     * @param eZContentObjectAttribute $contentObjectAttribute 
+     * @param string $data
+     * @return int
+     */
     function validateObjectAttributeInput( $contentObjectAttribute, $data )
     {
         $data = str_replace(" ", "", $data );
@@ -147,10 +156,15 @@ class eZFloatType extends eZDataType
         return eZInputValidator::STATE_INVALID;
     }
 
-    /*!
-     Validates the input and returns true if the input was
-     valid for this datatype.
-    */
+    /**
+     * Validates the input and returns true if the http input was
+     * valid for this datatype.
+     *
+     * @param eZHTTPTool $http
+     * @param string $base
+     * @param eZContentObjectAttribute $contentObjectAttribute
+     * @return int
+     */
     function validateObjectAttributeHTTPInput( $http, $base, $contentObjectAttribute )
     {
         if ( $http->hasPostVariable( $base . "_data_float_" . $contentObjectAttribute->attribute( "id" ) ) )
@@ -344,6 +358,13 @@ class eZFloatType extends eZDataType
         return $contentObjectAttribute->attribute( 'data_float' );
     }
 
+    /**
+     * Sets value from a string
+     *
+     * @param eZContentObjectAttribute $contentObjectAttribute
+     * @param string $string
+     * @return int
+     */
     function fromString( $contentObjectAttribute, $string )
     {
         if ( $this->validateObjectAttributeInput( $contentObjectAttribute, $string ) === eZInputValidator::STATE_ACCEPTED )
