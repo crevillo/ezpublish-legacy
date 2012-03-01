@@ -157,8 +157,8 @@ class eZFloatType extends eZDataType
     }
 
     /**
-     * Validates the input and returns true if the http input was
-     * valid for this datatype.
+     * Validates the input and returns an eZInputValidator constant
+     * depending on the validation
      *
      * @param eZHTTPTool $http
      * @param string $base
