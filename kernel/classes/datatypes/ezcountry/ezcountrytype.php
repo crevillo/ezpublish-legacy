@@ -179,41 +179,65 @@ class eZCountryType extends eZDataType
             $contentObjectAttribute->setContent( $default );
         }
     }
-
-    function validateObjectAttributeHTTPInput( $http, $base, $contentObjectAttribute )
+    
+    /*
+     * @since 4.7
+     * Validates object input. It should be used by all kind of inputs 
+     * ( http input, from string ... )
+     * data should be an array with the alpha2 codes of the countries trying 
+     * to be saved. If one of these codes is not in our country.ini settings file
+     *
+     * @param eZContentObjectAttribute $contentObjectAttribute 
+     * @param array $data
+     * @return int
+     */
+    function validateObjectAttributeInput( $contentObjectAttribute, $data )
     {
         if ( !$contentObjectAttribute->validateIsRequired() )
             return eZInputValidator::STATE_ACCEPTED;
-
-        if ( $http->hasPostVariable( $base . '_country_' . $contentObjectAttribute->attribute( 'id' ) ) )
+       
+        if ( count( $data ) > 0 and $data[0] != '' )
         {
-            $data = $http->postVariable( $base . '_country_' . $contentObjectAttribute->attribute( 'id' ) );
-
-            if ( count( $data ) > 0 and $data[0] != '' )
-                return eZInputValidator::STATE_ACCEPTED;
+            // loop data to check if each code is defined in our list
+            foreach( $data as $countryCode )
+            {
+                if ( self::fetchCountry( $countryCode, 'Alpha2' ) === false )
+                {
+                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                                                             'Some of the provided codes are not in the defined list.' ) );
+                    return eZInputValidator::STATE_INVALID;
+                }
+            }
+            return eZInputValidator::STATE_ACCEPTED;
         }
-
         $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
                                                              'Input required.' ) );
         return eZInputValidator::STATE_INVALID;
     }
+    
+    /**
+     * Validates the http input and returns an eZInputValidator constant
+     * depending on the validation
+     *
+     * @param eZHTTPTool $http
+     * @param string $base
+     * @param eZContentObjectAttribute $contentObjectAttribute
+     * @return int
+     */
+    function validateObjectAttributeHTTPInput( $http, $base, $contentObjectAttribute )
+    {
+        $data = $http->hasPostVariable( $base . '_country_' . $contentObjectAttribute->attribute( 'id' ) ) ?
+                $http->postVariable( $base . '_country_' . $contentObjectAttribute->attribute( 'id' ) ) :
+                array();
+        return $this->validateObjectAttributeInput( $contentObjectAttribute, $data );
+    }
 
     function validateCollectionAttributeHTTPInput( $http, $base, $contentObjectAttribute )
     {
-        if ( !$contentObjectAttribute->validateIsRequired() )
-            return eZInputValidator::STATE_ACCEPTED;
-
-        if ( $http->hasPostVariable( $base . '_country_' . $contentObjectAttribute->attribute( 'id' ) ) )
-        {
-            $data = $http->postVariable( $base . '_country_' . $contentObjectAttribute->attribute( 'id' ) );
-
-            if ( count( $data ) > 0 and $data[0] != '' )
-                return eZInputValidator::STATE_ACCEPTED;
-        }
-
-        $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                             'Input required.' ) );
-        return eZInputValidator::STATE_INVALID;
+        $data = $http->hasPostVariable( $base . '_country_' . $contentObjectAttribute->attribute( 'id' ) ) ?
+                $http->postVariable( $base . '_country_' . $contentObjectAttribute->attribute( 'id' ) ) :
+                array();
+        return $this->validateObjectAttributeInput( $contentObjectAttribute, $data );
     }
 
     /*!
@@ -375,10 +399,26 @@ class eZCountryType extends eZDataType
     {
         return $contentObjectAttribute->attribute( 'data_text' );
     }
-
+    
+    /**
+     * Sets value from a string
+     * @since 4.7 it will perform a validation before storing
+     * string should be a list of Alpha2 codes separated by 
+     * commas (US,GB,FR,...)
+     *
+     * @param eZContentObjectAttribute $contentObjectAttribute
+     * @param string $string
+     * @return int
+     */
     function fromString( $contentObjectAttribute, $string )
     {
-        return $contentObjectAttribute->setAttribute( 'data_text', $string );
+        $data = explode( ',', $string );
+
+        if ( $this->validateObjectAttributeInput( $contentObjectAttribute, $data ) === eZInputValidator::STATE_INVALID )
+            return eZInputValidator::STATE_INVALID;
+
+        $contentObjectAttribute->setAttribute( 'data_text', $string );
+        return eZInputValidator::STATE_ACCEPTED;
     }
 
     /*!
