@@ -53,34 +53,29 @@ class eZKeywordType extends eZDataType
         }
     }
 
+    function validateObjectAttributeInput( $contentObjectAttribute, $data )
+    {
+        $classAttribute = $contentObjectAttribute->contentClassAttribute();
+        if ( $data == "" )
+        {
+            if ( $contentObjectAttribute->validateIsRequired() )
+            {
+                $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                                                                         'Input required.' ) );
+                return eZInputValidator::STATE_INVALID;
+            }
+        }
+        return eZInputValidator::STATE_ACCEPTED;
+    }
+
     /*!
      Validates the input and returns true if the input was
      valid for this datatype.
     */
     function validateObjectAttributeHTTPInput( $http, $base, $contentObjectAttribute )
     {
-        $classAttribute = $contentObjectAttribute->contentClassAttribute();
-
-        if ( $http->hasPostVariable( $base . '_ezkeyword_data_text_' . $contentObjectAttribute->attribute( 'id' ) ) )
-        {
-            $data = $http->postVariable( $base . '_ezkeyword_data_text_' . $contentObjectAttribute->attribute( 'id' ) );
-
-            if ( $data == "" )
-            {
-                if ( !$classAttribute->attribute( 'is_information_collector' ) and $contentObjectAttribute->validateIsRequired() )
-                {
-                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                                                                         'Input required.' ) );
-                    return eZInputValidator::STATE_INVALID;
-                }
-            }
-        }
-        else if ( !$classAttribute->attribute( 'is_information_collector' ) and $contentObjectAttribute->validateIsRequired() )
-        {
-            $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes', 'Input required.' ) );
-            return eZInputValidator::STATE_INVALID;
-        }
-        return eZInputValidator::STATE_ACCEPTED;
+        $data = $http->postVariable( $base . '_ezkeyword_data_text_' . $contentObjectAttribute->attribute( 'id' ) );
+        return $this->validateObjectAttributeInput( $contentObjectAttribute, $data );
     }
 
     /*!
@@ -251,10 +246,13 @@ class eZKeywordType extends eZDataType
 
     function fromString( $contentObjectAttribute, $string )
     {
+        if( $this->validateObjectAttributeInput( $contentObjectAttribute, $string ) ===  eZInputValidator::STATE_INVALID )
+            return eZInputValidator::STATE_INVALID;    
+
         $keyword = new eZKeyword();
         $keyword->initializeKeyword( $string );
         $contentObjectAttribute->setContent( $keyword );
-        return true;
+        return eZInputValidator::STATE_ACCEPTED;
     }
 
     function serializeContentObjectAttribute( $package, $objectAttribute )
