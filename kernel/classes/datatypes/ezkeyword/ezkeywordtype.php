@@ -52,7 +52,16 @@ class eZKeywordType extends eZDataType
             }
         }
     }
-
+    
+    /*
+     * @since 4.7
+     * Validates object input. It should be used by all kind of inputs 
+     * ( http input, from string ... )    
+     *
+     * @param eZContentObjectAttribute $contentObjectAttribute 
+     * @param array $data
+     * @return int
+     */
     function validateObjectAttributeInput( $contentObjectAttribute, $data )
     {
         $classAttribute = $contentObjectAttribute->contentClassAttribute();
@@ -68,10 +77,15 @@ class eZKeywordType extends eZDataType
         return eZInputValidator::STATE_ACCEPTED;
     }
 
-    /*!
-     Validates the input and returns true if the input was
-     valid for this datatype.
-    */
+    /**
+     * Validates the http input and returns an eZInputValidator constant
+     * depending on the validation
+     *
+     * @param eZHTTPTool $http
+     * @param string $base
+     * @param eZContentObjectAttribute $contentObjectAttribute
+     * @return int
+     */
     function validateObjectAttributeHTTPInput( $http, $base, $contentObjectAttribute )
     {
         $data = $http->postVariable( $base . '_ezkeyword_data_text_' . $contentObjectAttribute->attribute( 'id' ) );
@@ -243,7 +257,14 @@ class eZKeywordType extends eZDataType
         $keyword->fetch( $contentObjectAttribute  );
         return  $keyword->keywordString();
     }
-
+    
+    /**
+     * Sets value from a string
+     *
+     * @param eZContentObjectAttribute $contentObjectAttribute
+     * @param string $string
+     * @return int
+     */
     function fromString( $contentObjectAttribute, $string )
     {
         if( $this->validateObjectAttributeInput( $contentObjectAttribute, $string ) ===  eZInputValidator::STATE_INVALID )
