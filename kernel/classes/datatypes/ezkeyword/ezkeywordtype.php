@@ -59,7 +59,7 @@ class eZKeywordType extends eZDataType
      * ( http input, from string ... )    
      *
      * @param eZContentObjectAttribute $contentObjectAttribute 
-     * @param array $data
+     * @param string $data
      * @return int
      */
     function validateObjectAttributeInput( $contentObjectAttribute, $data )
