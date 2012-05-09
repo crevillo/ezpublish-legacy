@@ -1255,7 +1255,26 @@ class eZDataType
             eZDataType::loadAndRegisterType( $type );
         }
     }
-
+    
+    /**
+     * Load and register the datatype $type
+     *
+     * Since 4.7 there is no need to do file_exists and include calls
+     * if datatype is defined in the following way:
+     * AvailableDataTypes[{$type}]={$class}
+     * Ex: AvailableDataTypes[custom]=customType
+     *
+     * It's still possible to define datatypes in the old way, so BC 
+     * shouldn't be a problem for this case
+     * Ex: AvailableDataTypes[]=custom
+     * In this case, you'll need to call eZDataType::register
+     * from your custom class.
+     * 
+     * Recommendation is moving to the new way. 
+     * 
+     * @param string $type
+     * @return bool
+     */
     static function loadAndRegisterType( $type )
     {
         $types =& $GLOBALS["eZDataTypes"];
