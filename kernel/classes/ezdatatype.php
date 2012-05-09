@@ -1234,7 +1234,17 @@ class eZDataType
     {
         return false;
     }
-
+    
+    /**
+     * Returns allowed datatypes
+     *
+     * Since 4.7 datatypes can be defined with a pair of 
+     * dataype/class
+     * For keeping backward compability, allowedTypes will be
+     * filled with 'key' or 'val', depending on is_numeric( key ) value
+     *
+     * @return array
+     */ 
     static function allowedTypes()
     {
         $allowedTypes =& $GLOBALS["eZDataTypeAllowedTypes"];
@@ -1242,7 +1252,14 @@ class eZDataType
         {
             $contentINI = eZINI::instance( 'content.ini' );
             $dataTypes = $contentINI->variable( 'DataTypeSettings', 'AvailableDataTypes' );
-            $allowedTypes = array_unique( $dataTypes );
+            $allowedTypes = array();
+            foreach( $dataTypes as $key => $val )
+            {
+                if ( is_numeric( $key ) )
+                    $allowedTypes[] = $val;
+                else
+                    $allowedTypes[] = $key;
+            }
         }
         return $allowedTypes;
     }
