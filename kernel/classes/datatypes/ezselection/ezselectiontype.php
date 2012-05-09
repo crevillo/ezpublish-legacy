@@ -444,5 +444,4 @@ class eZSelectionType extends eZDataType
     }
 }
 
-eZDataType::register( eZSelectionType::DATA_TYPE_STRING, "eZSelectionType" );
 ?>

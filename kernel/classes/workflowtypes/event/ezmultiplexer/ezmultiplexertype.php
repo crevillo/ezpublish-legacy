@@ -413,6 +413,4 @@ class eZMultiplexerType extends eZWorkflowEventType
     }
 }
 
-eZWorkflowEventType::registerEventType( eZMultiplexerType::WORKFLOW_TYPE_STRING, 'eZMultiplexerType' );
-
 ?>
