@@ -1264,9 +1264,21 @@ class eZDataType
             return false;
         }
 
-        $baseDirectory = eZExtension::baseDirectory();
         $contentINI = eZINI::instance( 'content.ini' );
-
+        $availableDataTypes = $contentINI->variable( 'DataTypeSettings', 'AvailableDataTypes' );
+        if ( array_key_exists( $type, $availableDataTypes ) )
+        {
+            if ( class_exists( $availableDataTypes[$type] ) )
+            {
+                self::register( $type, $availableDataTypes[$type] );
+                return true;
+            }
+            else
+                eZDebug::writeError( "Undefined datatype class: " . $availableDataTypes[$type], __METHOD__ );
+        }
+        
+        $baseDirectory = eZExtension::baseDirectory();
+        
         $extensionDirectories = $contentINI->variable( 'DataTypeSettings', 'ExtensionDirectories' );
         $extensionDirectories = array_unique( $extensionDirectories );
         $repositoryDirectories = $contentINI->variable( 'DataTypeSettings', 'RepositoryDirectories' );
