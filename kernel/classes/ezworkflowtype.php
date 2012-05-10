@@ -121,7 +121,7 @@ class eZWorkflowType
     /**
      * Returns allowed eventypes
      *
-     * Since 4.7 eventtypes can be defined with a pair of 
+     * Since 5.0 eventtypes can be defined with a pair of 
      * eventtype/class
      * For keeping backward compability, allowedTypes will be
      * filled with 'key' or 'val', depending on is_numeric( key ) value
@@ -176,7 +176,7 @@ class eZWorkflowType
     /**
      * Load and register the eventtype $type
      *
-     * Since 4.7 there is no need to do file_exists and include calls
+     * Since 5.0 there is no need to do file_exists and include calls
      * if eventtype is defined in the following way:
      * AvailableEventTypes[{$type}]={$class}
      * Ex: AvailableEventTypes[event_custom]=eventCustomType
@@ -223,7 +223,7 @@ class eZWorkflowType
                 return true;
             }
             else
-                eZDebug::writeError( "Undefined datatype class: " . $availableDataTypes[$type], __METHOD__ );
+                eZDebug::writeError( "Undefined datatype class: " . $availableEventTypes[$typeString], __METHOD__ );
         }        
 
         $baseDirectory = eZExtension::baseDirectory();

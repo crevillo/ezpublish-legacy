@@ -1238,7 +1238,7 @@ class eZDataType
     /**
      * Returns allowed datatypes
      *
-     * Since 4.7 datatypes can be defined with a pair of 
+     * Since 5.0 datatypes can be defined with a pair of 
      * dataype/class
      * For keeping backward compability, allowedTypes will be
      * filled with 'key' or 'val', depending on is_numeric( key ) value
@@ -1276,7 +1276,7 @@ class eZDataType
     /**
      * Load and register the datatype $type
      *
-     * Since 4.7 there is no need to do file_exists and include calls
+     * Since 5.0 there is no need to do file_exists and include calls
      * if datatype is defined in the following way:
      * AvailableDataTypes[{$type}]={$class}
      * Ex: AvailableDataTypes[custom]=customType
