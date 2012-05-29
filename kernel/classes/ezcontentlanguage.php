@@ -4,7 +4,7 @@
  *
  * @copyright Copyright (C) 1999-2012 eZ Systems AS. All rights reserved.
  * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License v2
- * @version //autogentag//
+ * @version  2012.4
  * @package kernel
  */
 
@@ -167,37 +167,32 @@ class eZContentLanguage extends eZPersistentObject
     /**
      * Fetches the list of the languages used on the site.
      *
-     * \param forceReloading Optional. If true, the list will be fetched from database even if it is cached in memory.
-     *                       Default value is false.
-     * \return Array of the eZContentLanguage objects of languages used on the site.
-     * \static
+     * @param bool $forceReloading Optional. If true, the list will be fetched from database even if it is cached in memory. Default value is false.
+     *
+     * @return array
      */
     static function fetchList( $forceReloading = false )
     {
         if( isset( $GLOBALS['eZContentLanguageList'] ) && $forceReloading === false )
             return $GLOBALS['eZContentLanguageList'];
 
-        $cachePath = eZSys::cacheDirectory() . '/ezcontentlanguage_cache.php';
-        $clusterFileHandler = eZClusterFileHandler::instance( $cachePath );
+        $cacheFile = eZSys::cacheDirectory() . '/ezcontentlanguage_cache.php';
+        $clusterFileHandler = eZClusterFileHandler::instance( $cacheFile );
 
-        if( $forceReloading || !$clusterFileHandler->fileExists( $cachePath ) )
+        if ( $forceReloading )
         {
             $languages = eZPersistentObject::fetchObjectList( eZContentLanguage::definition() );
-            $clusterFileHandler->fileStoreContents( $cachePath, serialize( $languages ), 'content', 'php' );
+            $clusterFileHandler->fileStoreContents( $cacheFile, serialize( $languages ), 'content', 'php' );
         }
         else
         {
-            $languages = unserialize( $clusterFileHandler->fetchContents() );
-            // If for some reason unserialize operation fails, we force the cache file to regenerate
-            // See http://issues.ez.no/18613
-            if ( $languages === false )
-            {
-                eZDebug::writeError(
-                    "An error occurred while reading content language cache file $cachePath. File is being re-generated",
-                    __METHOD__
-                );
-                return self::fetchList( true );
-            }
+            $languages = $clusterFileHandler->processCache( 
+                array( 'eZContentLanguage', 'languagesRetrieve' ),
+                array( 'eZContentLanguage', 'languagesGenerate' ),
+                null,
+                null,
+                array() 
+            );
         }
 
         unset( $GLOBALS['eZContentLanguageList'] );
@@ -937,6 +932,24 @@ class eZContentLanguage extends eZPersistentObject
         $cachePath = eZSys::cacheDirectory() . '/ezcontentlanguage_cache.php';
         eZClusterFileHandler::instance()->fileDelete( $cachePath );
     }
+    
+    static function languagesRetrieve( $file, $mtime, $args )
+    {
+        $contents = file_get_contents( $file );
+        $Result = unserialize( $contents );
+        return $Result;
+    }
+
+    static function languagesGenerate( $file, $mtime, $args )
+    {
+        $languages = eZPersistentObject::fetchObjectList( eZContentLanguage::definition() );
+        $retval = array( 'content' => $languages,
+                         'store'   => !( isset( $noCache ) and $noCache ) );
+        if ( $file !== false && $retval['store'] )
+            $retval['binarydata'] = serialize( $languages );
+        return $retval;
+    }
+    
 }
 
 ?>
