@@ -944,7 +944,7 @@ class eZContentLanguage extends eZPersistentObject
     {
         $languages = eZPersistentObject::fetchObjectList( eZContentLanguage::definition() );
         $retval = array( 'content' => $languages,
-                         'store'   => !( isset( $noCache ) and $noCache ) );
+                         'store'   => true );
         if ( $file !== false && $retval['store'] )
             $retval['binarydata'] = serialize( $languages );
         return $retval;
