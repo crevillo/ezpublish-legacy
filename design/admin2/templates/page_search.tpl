@@ -13,7 +13,7 @@
         {/if}
         <input id="searchtext" name="SearchText" type="text" size="20" value="{if is_set( $search_text )}{$search_text|wash}{/if}" title="{$search_title|wash}" />
         <input type="hidden" name="SubTreeArray" value="{$search_node_id}" />
-        <input id="searchbutton" class="button hide" name="SearchButton" type="submit" value="{'Search'|i18n( 'design/admin/pagelayout' )}" />
+        <input id="searchbutton" class="button" name="SearchButton" type="submit" value="{'Search'|i18n( 'design/admin/pagelayout' )}" />
         {if eq( $ui_context, 'browse' ) }
             <input name="Mode" type="hidden" value="browse" />
             <input name="BrowsePageLimit" type="hidden" value="{min( ezpreference( 'admin_list_limit' ), 3)|choose( 10, 10, 25, 50 )}" />
@@ -21,7 +21,6 @@
         {else}
             <p class="advanced hide"><a href={'/content/advancedsearch'|ezurl} title="{'Advanced search.'|i18n( 'design/admin/pagelayout' )}">{'Advanced'|i18n( 'design/admin/pagelayout' )}</a></p>
         {/if}
-        <div class="searchbuttonfield" id="searchbuttonfield"></div>
     {/if}
 </form>
 </div>

@@ -305,10 +305,10 @@ input.button, button, input.defaultbutton, input.button-disabled
 
 input.defaultbutton
 {
-	font-weight: bold;
-	padding-left: 0.45em;
-	padding-right: 0.45em;
-	color: #094564;
+        font-weight: bold;
+        padding-left: 0.45em;
+        padding-right: 0.45em;
+        color: #094564;
 }
 
 input.button-disabled, input.button[disabled="disabled"]
@@ -319,8 +319,8 @@ input.button-disabled, input.button[disabled="disabled"]
 
 input.disabled[type="image"]
 {
-	opacity: 0.7;
-	cursor: default;
+        opacity: 0.7;
+        cursor: default;
 }
 
 input.box, textarea.box

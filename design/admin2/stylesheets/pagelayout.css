@@ -795,32 +795,34 @@ input.button, input.defaultbutton, input.button-disabled
 .searchblock
 {
     position: relative;
+    background: #fff;
+    border: 1px solid #666;
+    border-radius: 3px;
+    margin-right: 20px;
 }
 
 #searchtext
 {
     height: 18px;
-    padding: 4px 20px 0 5px;
+    padding: 4px 0 0 5px;
 }
 
 #searchtext.passive
 {
-	color: #888;
+        color: #888;
 }
 
-.searchbuttonfield
+#searchbutton 
 {
-    height: 17px;
-    position: absolute;
-    right: 3px;
-    top: 3px;
-    width: 17px;
+  text-indent: -9999px;
+  background: #fff url(../images/icons-sprite.png) no-repeat right -368px;
+  border:none;
+  background-clip: padding-box;
+  /*height: 17px;*/
+  width: 17px;
 }
 
-.searchbuttonfield:hover
-{
-    cursor: pointer;
-}
+
 
 /* FIXED CONTROLBAR DEPENDING ON SCROLL */
 .yui3-js-enabled .controlbar-fixed
