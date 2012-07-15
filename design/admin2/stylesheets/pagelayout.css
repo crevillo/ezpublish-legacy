@@ -814,12 +814,11 @@ input.button, input.defaultbutton, input.button-disabled
 
 #searchbutton 
 {
-  text-indent: -9999px;
-  background: #fff url(../images/icons-sprite.png) no-repeat right -368px;
-  border:none;
-  background-clip: padding-box;
-  /*height: 17px;*/
-  width: 17px;
+    text-indent: -9999px;
+    background: #fff url(../images/icons-sprite.png) no-repeat right -368px;
+    border:none;
+    background-clip: padding-box;
+    width: 17px;
 }
 
 
