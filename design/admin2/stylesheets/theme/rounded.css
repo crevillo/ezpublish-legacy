@@ -344,7 +344,7 @@ input.button-disabled, input.button[disabled="disabled"]
     background-image: -ms-linear-gradient(top,  #fefefe,  #dfdfdf);
     background-image: -o-linear-gradient(top,  #fefefe,  #dfdfdf);
     background-image: linear-gradient(top,  #fefefe,  #dfdfdf);
-}             
+}
 
 /* SEARCH */
 #searchtext
@@ -371,13 +371,13 @@ input.button-disabled, input.button[disabled="disabled"]
 
 .content-dashboard .box-header
 {
-     background: transparent url('../../images/2/welcome.png') no-repeat scroll right bottom;
-     padding: 35px 0 0;
+    background: transparent url('../../images/2/welcome.png') no-repeat scroll right bottom;
+    padding: 35px 0 0;
 }
 
 .content-dashboard .box-header h1
 {
-     visibility: hidden;
+    visibility: hidden;
 }
 
 .dashboard-item
@@ -509,5 +509,5 @@ table.list th, table.special th
 
 #page .yui-calcontainer .title
 {
-position:absolute;
+    position:absolute;
 }
